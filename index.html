@@ -1,540 +1,354 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AAT 4 Assistant — AI Workflow Chatbot</title>
-  <meta name="description" content="An AI-powered chatbot for AAT 4: AI-Assisted Workflow Design using Prompt Engineering. Ask anything about the assignment." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg: #0a0a14;
-      --surface: #12121f;
-      --card: #1a1a2e;
-      --border: rgba(255,255,255,0.07);
-      --accent: #7c6af7;
-      --accent2: #a78bfa;
-      --accent-glow: rgba(124,106,247,0.35);
-      --user-bubble: linear-gradient(135deg, #7c6af7, #a78bfa);
-      --bot-bubble: #1e1e35;
-      --text: #e8e8f0;
-      --muted: #7070a0;
-      --input-bg: #1a1a2e;
-      --radius: 18px;
-      --radius-sm: 10px;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    /* ── HEADER ── */
-    header {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 16px 24px;
-      background: rgba(18,18,31,0.95);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-      z-index: 10;
-    }
-
-    .logo-wrap {
-      width: 44px; height: 44px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, #7c6af7, #a78bfa);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px;
-      box-shadow: 0 0 18px var(--accent-glow);
-      flex-shrink: 0;
-    }
-
-    .header-text h1 {
-      font-size: 16px; font-weight: 700; letter-spacing: -0.3px;
-      background: linear-gradient(90deg, #fff 60%, #a78bfa);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-
-    .header-text p {
-      font-size: 11.5px; color: var(--muted); margin-top: 1px;
-    }
-
-    .status-dot {
-      margin-left: auto; display: flex; align-items: center; gap: 7px;
-      font-size: 12px; color: #6ee7b7;
-    }
-
-    .dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: #6ee7b7;
-      box-shadow: 0 0 8px #6ee7b7;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(0.85); }
-    }
-
-    /* ── CHAT AREA ── */
-    #chat-area {
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      scroll-behavior: smooth;
-    }
-
-    #chat-area::-webkit-scrollbar { width: 4px; }
-    #chat-area::-webkit-scrollbar-track { background: transparent; }
-    #chat-area::-webkit-scrollbar-thumb { background: rgba(124,106,247,0.3); border-radius: 10px; }
-
-    /* ── WELCOME CARD ── */
-    .welcome-card {
-      max-width: 580px;
-      margin: 10px auto 6px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 28px 28px 20px;
-      text-align: center;
-    }
-
-    .welcome-card .icon { font-size: 40px; margin-bottom: 12px; }
-
-    .welcome-card h2 {
-      font-size: 20px; font-weight: 700; margin-bottom: 6px;
-      background: linear-gradient(90deg, #fff, #a78bfa);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-
-    .welcome-card p { font-size: 13.5px; color: var(--muted); line-height: 1.6; }
-
-    .chips-label {
-      font-size: 11px; color: var(--muted); text-transform: uppercase;
-      letter-spacing: 0.8px; margin: 18px 0 10px; font-weight: 600;
-    }
-
-    .chips {
-      display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
-    }
-
-    .chip {
-      background: rgba(124,106,247,0.12);
-      border: 1px solid rgba(124,106,247,0.3);
-      color: var(--accent2);
-      padding: 7px 14px;
-      border-radius: 30px;
-      font-size: 12px; font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .chip:hover {
-      background: rgba(124,106,247,0.25);
-      border-color: var(--accent2);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 14px rgba(124,106,247,0.2);
-    }
-
-    /* ── MESSAGE BUBBLES ── */
-    .msg-row {
-      display: flex;
-      align-items: flex-end;
-      gap: 10px;
-      max-width: 760px;
-      margin: 0 auto;
-      width: 100%;
-      animation: fadeUp 0.3s ease;
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .msg-row.user { flex-direction: row-reverse; }
-
-    .avatar {
-      width: 32px; height: 32px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 15px; flex-shrink: 0;
-    }
-
-    .avatar.bot {
-      background: linear-gradient(135deg, #7c6af7, #a78bfa);
-      box-shadow: 0 0 12px var(--accent-glow);
-    }
-
-    .avatar.user { background: #2a2a45; }
-
-    .bubble {
-      max-width: 78%;
-      padding: 13px 17px;
-      border-radius: var(--radius);
-      font-size: 14px;
-      line-height: 1.7;
-      word-break: break-word;
-    }
-
-    .bubble.bot {
-      background: var(--bot-bubble);
-      border: 1px solid var(--border);
-      border-bottom-left-radius: 5px;
-    }
-
-    .bubble.user {
-      background: var(--user-bubble);
-      color: #fff;
-      border-bottom-right-radius: 5px;
-    }
-
-    .bubble p { margin: 0 0 8px; }
-    .bubble p:last-child { margin-bottom: 0; }
-    .bubble strong { color: var(--accent2); }
-    .bubble ul, .bubble ol { padding-left: 18px; margin: 6px 0; }
-    .bubble li { margin: 4px 0; }
-    .bubble code {
-      background: rgba(124,106,247,0.15);
-      padding: 2px 6px; border-radius: 5px;
-      font-size: 12.5px; font-family: monospace;
-    }
-
-    /* ── TYPING INDICATOR ── */
-    .typing-row { align-items: center; }
-
-    .typing-bubble {
-      background: var(--bot-bubble);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      border-bottom-left-radius: 5px;
-      padding: 14px 18px;
-      display: flex; gap: 5px; align-items: center;
-    }
-
-    .typing-bubble span {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--accent2);
-      animation: bounce 1.2s infinite;
-      display: inline-block;
-    }
-
-    .typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
-    .typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
-
-    @keyframes bounce {
-      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-      30% { transform: translateY(-6px); opacity: 1; }
-    }
-
-    /* ── INPUT AREA ── */
-    .input-wrap {
-      padding: 14px 16px 20px;
-      background: rgba(10,10,20,0.98);
-      border-top: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-
-    .input-inner {
-      display: flex;
-      align-items: flex-end;
-      gap: 10px;
-      max-width: 760px;
-      margin: 0 auto;
-      background: var(--input-bg);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 10px 12px;
-      transition: border-color 0.2s;
-    }
-
-    .input-inner:focus-within {
-      border-color: rgba(124,106,247,0.5);
-      box-shadow: 0 0 0 3px rgba(124,106,247,0.1);
-    }
-
-    #user-input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      line-height: 1.5;
-      resize: none;
-      max-height: 140px;
-      min-height: 24px;
-      overflow-y: auto;
-    }
-
-    #user-input::placeholder { color: var(--muted); }
-
-    #send-btn {
-      width: 38px; height: 38px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #7c6af7, #a78bfa);
-      border: none;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 14px var(--accent-glow);
-    }
-
-    #send-btn:hover { transform: scale(1.08); box-shadow: 0 6px 20px var(--accent-glow); }
-    #send-btn:active { transform: scale(0.95); }
-    #send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-
-    #send-btn svg { width: 17px; height: 17px; fill: white; }
-
-    .input-hint {
-      text-align: center;
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 8px;
-    }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width: 600px) {
-      header { padding: 12px 16px; }
-      .bubble { max-width: 90%; font-size: 13.5px; }
-      .welcome-card { padding: 22px 18px 18px; }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AAT 4 Assistant — AI Workflow Chatbot</title>
+<meta name="description" content="AI-powered chatbot for AAT 4: AI-Assisted Workflow Design using Prompt Engineering."/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a14;--surface:#12121f;--card:#1a1a2e;--border:rgba(255,255,255,0.07);
+  --accent:#7c6af7;--accent2:#a78bfa;--glow:rgba(124,106,247,0.35);
+  --user-bg:linear-gradient(135deg,#7c6af7,#a78bfa);--bot-bg:#1e1e35;
+  --text:#e8e8f0;--muted:#7070a0;--input-bg:#1a1a2e;--radius:18px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;align-items:center;gap:14px;padding:16px 24px;background:rgba(18,18,31,0.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);flex-shrink:0;z-index:10}
+.logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#7c6af7,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 18px var(--glow);flex-shrink:0}
+.htxt h1{font-size:16px;font-weight:700;background:linear-gradient(90deg,#fff 60%,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.htxt p{font-size:11.5px;color:var(--muted);margin-top:1px}
+.status{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:12px;color:#6ee7b7}
+.dot{width:8px;height:8px;border-radius:50%;background:#6ee7b7;box-shadow:0 0 8px #6ee7b7;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+#chat{flex:1;overflow-y:auto;padding:24px 16px;display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth}
+#chat::-webkit-scrollbar{width:4px}
+#chat::-webkit-scrollbar-thumb{background:rgba(124,106,247,.3);border-radius:10px}
+.welcome{max-width:580px;margin:10px auto 6px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px 28px 20px;text-align:center}
+.welcome .icon{font-size:40px;margin-bottom:12px}
+.welcome h2{font-size:20px;font-weight:700;margin-bottom:6px;background:linear-gradient(90deg,#fff,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.welcome p{font-size:13.5px;color:var(--muted);line-height:1.6}
+.chips-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:18px 0 10px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.chip{background:rgba(124,106,247,.12);border:1px solid rgba(124,106,247,.3);color:var(--accent2);padding:7px 14px;border-radius:30px;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s}
+.chip:hover{background:rgba(124,106,247,.25);border-color:var(--accent2);transform:translateY(-2px);box-shadow:0 4px 14px rgba(124,106,247,.2)}
+.row{display:flex;align-items:flex-end;gap:10px;max-width:760px;margin:0 auto;width:100%;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.row.user{flex-direction:row-reverse}
+.av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.av.bot{background:linear-gradient(135deg,#7c6af7,#a78bfa);box-shadow:0 0 12px var(--glow)}
+.av.user{background:#2a2a45}
+.bub{max-width:78%;padding:13px 17px;border-radius:var(--radius);font-size:14px;line-height:1.7;word-break:break-word}
+.bub.bot{background:var(--bot-bg);border:1px solid var(--border);border-bottom-left-radius:5px}
+.bub.user{background:var(--user-bg);color:#fff;border-bottom-right-radius:5px}
+.bub p{margin:0 0 6px}.bub p:last-child{margin:0}
+.bub strong{color:var(--accent2)}
+.bub ul,.bub ol{padding-left:18px;margin:6px 0}.bub li{margin:3px 0}
+.bub .section{margin:10px 0 4px;font-weight:600;color:var(--accent2);font-size:13px}
+.typing-row{align-items:center}
+.typing-bub{background:var(--bot-bg);border:1px solid var(--border);border-radius:var(--radius);border-bottom-left-radius:5px;padding:14px 18px;display:flex;gap:5px;align-items:center}
+.typing-bub span{width:7px;height:7px;border-radius:50%;background:var(--accent2);animation:bounce 1.2s infinite;display:inline-block}
+.typing-bub span:nth-child(2){animation-delay:.2s}.typing-bub span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-6px);opacity:1}}
+.input-wrap{padding:14px 16px 20px;background:rgba(10,10,20,.98);border-top:1px solid var(--border);flex-shrink:0}
+.input-inner{display:flex;align-items:flex-end;gap:10px;max-width:760px;margin:0 auto;background:var(--input-bg);border:1px solid var(--border);border-radius:16px;padding:10px 12px;transition:border-color .2s}
+.input-inner:focus-within{border-color:rgba(124,106,247,.5);box-shadow:0 0 0 3px rgba(124,106,247,.1)}
+#inp{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;resize:none;max-height:140px;min-height:24px;overflow-y:auto}
+#inp::placeholder{color:var(--muted)}
+#btn{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#7c6af7,#a78bfa);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;box-shadow:0 4px 14px var(--glow)}
+#btn:hover{transform:scale(1.08)}#btn:active{transform:scale(.95)}#btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+#btn svg{width:17px;height:17px;fill:white}
+.hint{text-align:center;font-size:11px;color:var(--muted);margin-top:8px}
+@media(max-width:600px){header{padding:12px 16px}.bub{max-width:90%;font-size:13.5px}.welcome{padding:22px 18px 18px}}
+</style>
 </head>
 <body>
-
-<!-- HEADER -->
 <header>
-  <div class="logo-wrap">🤖</div>
-  <div class="header-text">
+  <div class="logo">🤖</div>
+  <div class="htxt">
     <h1>AAT 4 Assistant</h1>
     <p>AI-Assisted Workflow &amp; Prompt Engineering Guide</p>
   </div>
-  <div class="status-dot">
-    <div class="dot"></div>
-    <span>Online</span>
-  </div>
+  <div class="status"><div class="dot"></div><span>Online</span></div>
 </header>
 
-<!-- CHAT AREA -->
-<div id="chat-area">
-  <div class="welcome-card" id="welcome-card">
+<div id="chat">
+  <div class="welcome" id="wc">
     <div class="icon">✨</div>
     <h2>Welcome to your AAT 4 Chatbot!</h2>
-    <p>I'm your AI assistant for the <strong style="-webkit-text-fill-color:#a78bfa">AAT 4 Assignment</strong> on designing AI-assisted workflows using prompt engineering.<br/>Ask me anything about the assignment!</p>
+    <p>I'm your dedicated assistant for the <strong style="-webkit-text-fill-color:#a78bfa">AAT 4 Assignment</strong> on designing AI-assisted workflows using prompt engineering. Ask me anything about the assignment!</p>
     <p class="chips-label">Try asking</p>
     <div class="chips">
-      <div class="chip" onclick="sendChip(this)">What is the problem statement?</div>
-      <div class="chip" onclick="sendChip(this)">Explain the workflow steps</div>
-      <div class="chip" onclick="sendChip(this)">Show me Prompt 1</div>
-      <div class="chip" onclick="sendChip(this)">What is prompt engineering?</div>
-      <div class="chip" onclick="sendChip(this)">How was the AI evaluated?</div>
-      <div class="chip" onclick="sendChip(this)">What is the vanishing gradient problem?</div>
+      <div class="chip" onclick="ask(this)">What is the problem statement?</div>
+      <div class="chip" onclick="ask(this)">Explain the workflow steps</div>
+      <div class="chip" onclick="ask(this)">Show me Prompt 1</div>
+      <div class="chip" onclick="ask(this)">What is prompt engineering?</div>
+      <div class="chip" onclick="ask(this)">How was the AI evaluated?</div>
+      <div class="chip" onclick="ask(this)">What are the key findings?</div>
     </div>
   </div>
 </div>
 
-<!-- INPUT -->
 <div class="input-wrap">
   <div class="input-inner">
-    <textarea id="user-input" rows="1" placeholder="Ask anything about AAT 4…" maxlength="2000"></textarea>
-    <button id="send-btn" onclick="sendMessage()" aria-label="Send">
+    <textarea id="inp" rows="1" placeholder="Ask anything about AAT 4…" maxlength="500"></textarea>
+    <button id="btn" onclick="send()" aria-label="Send">
       <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
     </button>
   </div>
-  <p class="input-hint">Restricted to AAT 4 domain • Powered by Gemini AI</p>
+  <p class="hint">Restricted to AAT 4 domain • AI-Assisted Workflow Assignment</p>
 </div>
 
 <script>
-  const API_KEY = "AIzaSyB2EECP3eko-fnM1Egrq_PrLIZZY64IM50";
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+const KB = [
+  {
+    keys:["problem","problem statement","issue","struggle","challenge","what is aat","about aat","assignment about"],
+    answer:`<p class="section">📌 Problem Statement</p>
+<p><strong>Problem:</strong> Undergraduate engineering students struggle to summarize long technical documents because the content is dense, jargon-heavy, and too lengthy to read thoroughly under time constraints.</p>
+<ul>
+<li><strong>Who is affected:</strong> Undergraduate engineering students</li>
+<li><strong>Current approach:</strong> Students manually skim documents, often missing key points or misunderstanding technical terms</li>
+<li><strong>Target documents:</strong> Research papers & textbook chapters</li>
+<li><strong>Desired outcome:</strong> Clear, structured summary with key concepts explained in simple language</li>
+</ul>`
+  },
+  {
+    keys:["workflow","steps","step","flow","process","design","how does it work","how it work"],
+    answer:`<p class="section">🔄 AI-Assisted Workflow (5 Steps)</p>
+<ul>
+<li><strong>Step 1 — Input:</strong> Student pastes a research paper or textbook chapter into the AI tool</li>
+<li><strong>Step 2 — Key Topics:</strong> AI identifies and lists 5–8 main topics with one-line descriptions</li>
+<li><strong>Step 3 — Structured Summary:</strong> AI generates a summary using headings & bullets (max 300 words)</li>
+<li><strong>Step 4 — Jargon Simplification:</strong> AI identifies difficult terms and explains them with analogies</li>
+<li><strong>Step 5 — Review:</strong> Student reviews outputs and asks follow-up questions</li>
+</ul>
+<p>Each step builds on the previous — first the big picture, then details, then terminology.</p>`
+  },
+  {
+    keys:["prompt 1","first prompt","key topic","identify topic","topic prompt"],
+    answer:`<p class="section">📝 Prompt 1 — Identify Key Topics</p>
+<p><em>"Act as an academic study assistant for undergraduate engineering students. I will provide you with a technical document. Your task is to:</em></p>
+<ul>
+<li>Read through the document carefully</li>
+<li>Identify and list the 5–8 main topics or concepts covered</li>
+<li>Present them as a numbered list with a one-line description for each</li>
+<li>Mark the 2 most critical topics with a ⭐ symbol</li>
+</ul>
+<p><em>Here is the document: [PASTE DOCUMENT HERE]"</em></p>
+<p><strong>Why it works:</strong> Role assignment + specific format + audience awareness + scope constraint (5–8 items).</p>`
+  },
+  {
+    keys:["prompt 2","second prompt","summary prompt","structured summary","summarize"],
+    answer:`<p class="section">📝 Prompt 2 — Structured Summary</p>
+<p><em>"Act as an academic study assistant for undergraduate engineering students. Generate a structured summary of the document:</em></p>
+<ul>
+<li>Use clear headings and bullet points</li>
+<li>Maximum 300 words</li>
+<li>Cover main ideas, key findings, and conclusions</li>
+<li>Use the document's own section names as headings where possible</li>
+<li>End with a 2-sentence <strong>Key Takeaway</strong></li>
+</ul>
+<p><em>Here is the document: [PASTE DOCUMENT HERE]"</em></p>
+<p><strong>Score:</strong> 23/25 (A) — lost points for missing conclusion in initial version.</p>`
+  },
+  {
+    keys:["prompt 3","third prompt","jargon","simplif","term","analogy","difficult word"],
+    answer:`<p class="section">📝 Prompt 3 — Simplify Jargon</p>
+<p><em>"Act as a language simplifier for engineering students. Your task is to:</em></p>
+<ul>
+<li>Identify 5–8 difficult technical terms from the document</li>
+<li>Do NOT include basic terms a first-year student would know</li>
+<li>Explain each in simple everyday language</li>
+<li>Include a relatable analogy for each term</li>
+<li>Format: <strong>Term → Simple Definition → Analogy</strong></li>
+</ul>
+<p><em>Here is the document: [PASTE DOCUMENT HERE]"</em></p>
+<p><strong>Score:</strong> 25/25 (A+) — best performing prompt in the assignment!</p>`
+  },
+  {
+    keys:["evaluat","score","result","grade","rubric","mark","performance","how well"],
+    answer:`<p class="section">📊 Evaluation Results</p>
+<p>Each prompt was scored on 5 criteria (each out of 5): Clarity, Accuracy, Relevance, Structure, Effectiveness.</p>
+<ul>
+<li><strong>Prompt 1 (Key Topics):</strong> 25/25 — A+ 🏆</li>
+<li><strong>Prompt 2 (Summary):</strong> 23/25 — A ✅</li>
+<li><strong>Prompt 3 (Jargon):</strong> 25/25 — A+ 🏆</li>
+<li><strong>Overall Total:</strong> 73/75 — Grade A+</li>
+</ul>
+<p>Prompt 2 lost 2 points because the summary lacked a conclusion/key takeaway section — this was fixed in the improved version.</p>`
+  },
+  {
+    keys:["finding","learn","lesson","takeaway","conclusion","reflect","observation","what worked","limitation"],
+    answer:`<p class="section">🔑 Key Findings & Reflection</p>
+<p><strong>What worked well:</strong></p>
+<ul>
+<li>Role-based prompting ("Act as...") consistently improved output quality</li>
+<li>Specifying output format gave structured, predictable results</li>
+<li>Analogy-based prompting (Prompt 3) was most effective for student comprehension</li>
+<li>Sequential workflow mirrors natural human reading comprehension</li>
+</ul>
+<p><strong>Limitations found:</strong></p>
+<ul>
+<li>Works best with focused excerpts (2–4 paragraphs), not very long docs</li>
+<li>No built-in fact-verification step</li>
+<li>Minor prompt changes can significantly alter outputs</li>
+</ul>
+<p><strong>Lessons learned:</strong> Specificity beats vagueness. Constraints improve quality. Iteration is essential.</p>`
+  },
+  {
+    keys:["prompt engineer","what is prompt","prompt design","prompt technique","role-based","role assign"],
+    answer:`<p class="section">🧠 Prompt Engineering</p>
+<p>Prompt engineering is the practice of designing precise instructions to guide AI models toward producing accurate, useful outputs.</p>
+<p><strong>Key techniques used in this assignment:</strong></p>
+<ul>
+<li><strong>Role assignment:</strong> "Act as an academic study assistant" — sets tone & context</li>
+<li><strong>Format constraints:</strong> Specifying numbered lists, headings, word limits</li>
+<li><strong>Audience specification:</strong> "for undergraduate engineering students"</li>
+<li><strong>Scope constraints:</strong> "5–8 items", "max 300 words", "do not include..."</li>
+<li><strong>Iterative refinement:</strong> Testing, evaluating, and improving prompts</li>
+</ul>
+<p>These principles led to an overall score of <strong>73/75 (A+)</strong> in the assignment evaluation.</p>`
+  },
+  {
+    keys:["test document","deep neural","dnn","backprop","relu","batch norm","dropout","adam","nas","gradient","neural network","optimiz"],
+    answer:`<p class="section">📄 Test Document Used</p>
+<p>The assignment used an excerpt titled <strong>"Optimization Techniques in Deep Neural Networks"</strong> to test all 3 prompts.</p>
+<p><strong>Key concepts covered in the document:</strong></p>
+<ul>
+<li><strong>Deep Neural Networks (DNNs):</strong> Multi-layer models for pattern recognition</li>
+<li><strong>Vanishing Gradient Problem:</strong> Gradients shrink exponentially in deep layers</li>
+<li><strong>ReLU:</strong> Activation function that preserves gradient flow</li>
+<li><strong>Batch Normalization:</strong> Normalizes mini-batch inputs to stabilize training</li>
+<li><strong>Dropout:</strong> Randomly deactivates neurons to prevent overfitting</li>
+<li><strong>Adam Optimizer:</strong> Adaptive learning rate combining momentum + RMSProp</li>
+<li><strong>NAS:</strong> Neural Architecture Search — automates network design</li>
+</ul>
+<p>This document was chosen because it represents the type of dense, jargon-heavy content engineering students face.</p>`
+  },
+  {
+    keys:["improve","better prompt","updated prompt","refined","enhancement","suggestion","fix"],
+    answer:`<p class="section">💡 Improved Prompts (After Evaluation)</p>
+<p><strong>Prompt 1 improvement:</strong><br/>Added: <em>"Mark the 2 most critical topics with a ⭐ symbol"</em><br/>→ Helps students prioritize under exam pressure</p>
+<p><strong>Prompt 2 improvements:</strong></p>
+<ul>
+<li>Added: <em>"Use the document's section names as headings"</em></li>
+<li>Added: <em>"End with a 2-sentence Key Takeaway"</em></li>
+</ul>
+<p><strong>Prompt 3 improvement:</strong><br/>Added: <em>"Do not include terms a first-year student would already know"</em><br/>→ Ensures only genuinely challenging terms are explained</p>`
+  },
+  {
+    keys:["who made","who built","author","your name","who are you","what are you","about you","about this chatbot","created by"],
+    answer:`<p>I'm the <strong>AAT 4 Assignment Chatbot</strong> 🤖</p>
+<p>I was built as part of an AAT 4 assignment submission on <strong>"Designing an AI-Assisted Workflow for Summarizing Technical Documents using Prompt Engineering."</strong></p>
+<p>I'm restricted to answering questions about this assignment — including the problem statement, workflow design, prompt templates, evaluation results, and prompt engineering concepts.</p>`
+  },
+  {
+    keys:["output","ai output","result","gemini output","chatgpt output","what did ai","response"],
+    answer:`<p class="section">🤖 AI-Generated Outputs (Test Results)</p>
+<p><strong>Output 1 — Key Topics:</strong> Listed all 8 topics correctly with one-line descriptions. Clean numbered format.</p>
+<p><strong>Output 2 — Structured Summary:</strong> Covered all major concepts under clear headings. Missing a conclusion section (later fixed in improved prompt).</p>
+<p><strong>Output 3 — Jargon Simplification:</strong> Best output! All 8 terms explained with creative analogies:</p>
+<ul>
+<li>Non-convex landscape → "mountain range in heavy fog"</li>
+<li>Backpropagation → "teacher correcting exam step by step"</li>
+<li>Adam optimizer → "smart GPS adjusting speed for traffic"</li>
+<li>NAS → "architect software trying thousands of designs"</li>
+</ul>`
+  }
+];
 
-  const SYSTEM_PROMPT = `You are a specialized academic assistant exclusively for the AAT 4 assignment titled "Designing an AI-Assisted Workflow for Summarizing Technical Documents using Prompt Engineering."
+const OUT_OF_DOMAIN = `<p>I'm specialized exclusively for the <strong>AAT 4 assignment</strong> on AI-Assisted Workflow Design using Prompt Engineering.</p>
+<p>I can't answer questions outside this domain, but I'd love to help with anything related to your assignment! Try asking about:</p>
+<ul>
+<li>The problem statement or workflow steps</li>
+<li>Any of the 3 prompt templates</li>
+<li>Evaluation results & scores</li>
+<li>Prompt engineering concepts</li>
+<li>Key findings & reflection</li>
+</ul>`;
 
-YOUR KNOWLEDGE SCOPE — You ONLY answer questions related to:
-1. The AAT 4 assignment context and problem statement
-2. Prompt engineering concepts (role-based prompts, format constraints, audience specification, iterative refinement)
-3. The AI-assisted workflow designed in this assignment:
-   - Step 1: AI identifies key topics from the document
-   - Step 2: AI generates a structured summary (max 300 words, headings + bullets)
-   - Step 3: AI simplifies jargon/technical terms with analogies
-   - Step 4: Student reviews and asks follow-up questions
-4. The 3 prompt templates designed in the assignment
-5. Evaluation of AI outputs (clarity, accuracy, relevance, structure, effectiveness rubric)
-6. Key findings and limitations observed
-7. The test document topic (Deep Neural Networks, backpropagation, ReLU, Batch Normalization, Dropout, Adam optimizer, NAS) — ONLY in the context of explaining the assignment's test results
-8. Reflection on prompt engineering lessons learned
-9. General concepts about AI tools (ChatGPT, Gemini) as used in the assignment workflow
-
-ASSIGNMENT DETAILS YOU KNOW:
-- Problem: Undergraduate engineering students struggle to summarize long technical documents (dense, jargon-heavy, lengthy)
-- Target audience: Undergraduate engineering students
-- Target documents: Research papers and textbook chapters
-- Current approach: Students manually skim documents, missing key points
-- Desired outcome: Clear structured summary with key concepts in simple language
-- Prompt 1: Identify 5-8 key topics with one-line descriptions, mark 2 most critical with ⭐
-- Prompt 2: Structured summary (headings + bullets, max 300 words, key takeaway at end)
-- Prompt 3: Simplify 5-8 jargon terms with simple definitions and analogies
-- Test document: "Optimization Techniques in Deep Neural Networks"
-- Evaluation scores: Prompt 1 = 25/25 (A+), Prompt 2 = 23/25 (A), Prompt 3 = 25/25 (A+), Total = 73/75
-- Key improvements: Add ⭐ for critical topics, add "Key Takeaway" section, filter trivial jargon
-
-BEHAVIOR RULES:
-- ONLY answer questions about AAT 4 and its related concepts listed above
-- If asked about anything outside this scope, politely say: "I'm specialized for the AAT 4 assignment only. I can't answer questions outside this domain, but I'd love to help with anything related to your assignment!"
-- Be helpful, encouraging, and student-friendly
-- Use clear formatting with bullet points, bold text, and structure when helpful
-- Keep responses concise and relevant for students
-- If asked who made this chatbot or about the assignment author, say it was built as part of the AAT 4 assignment submission`;
-
-  const chatHistory = [];
-  const chatArea = document.getElementById('chat-area');
-  const userInput = document.getElementById('user-input');
-  const sendBtn = document.getElementById('send-btn');
-
-  // Auto-resize textarea
-  userInput.addEventListener('input', () => {
-    userInput.style.height = 'auto';
-    userInput.style.height = Math.min(userInput.scrollHeight, 140) + 'px';
-  });
-
-  // Enter to send (Shift+Enter for newline)
-  userInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
+function getBotReply(q){
+  const text = q.toLowerCase();
+  for(const item of KB){
+    if(item.keys.some(k => text.includes(k))) return item.answer;
+  }
+  // Fallback fuzzy: look for any partial word match
+  const words = text.split(/\s+/).filter(w=>w.length>3);
+  for(const item of KB){
+    if(item.keys.some(k => words.some(w => k.includes(w) || w.includes(k.split(' ')[0])))){
+      return item.answer;
     }
-  });
-
-  function sendChip(el) {
-    userInput.value = el.textContent;
-    sendMessage();
   }
+  return OUT_OF_DOMAIN;
+}
 
-  function addMessage(text, role) {
-    const isUser = role === 'user';
-    const row = document.createElement('div');
-    row.className = `msg-row ${isUser ? 'user' : 'bot'}`;
+const chatEl = document.getElementById('chat');
+const inpEl  = document.getElementById('inp');
+const btnEl  = document.getElementById('btn');
 
-    const avatar = document.createElement('div');
-    avatar.className = `avatar ${isUser ? 'user' : 'bot'}`;
-    avatar.textContent = isUser ? '👤' : '🤖';
+inpEl.addEventListener('input',()=>{
+  inpEl.style.height='auto';
+  inpEl.style.height=Math.min(inpEl.scrollHeight,140)+'px';
+});
+inpEl.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}
+});
 
-    const bubble = document.createElement('div');
-    bubble.className = `bubble ${isUser ? 'user' : 'bot'}`;
-    bubble.innerHTML = formatText(text);
+function ask(el){ inpEl.value=el.textContent; send(); }
 
-    row.appendChild(avatar);
-    row.appendChild(bubble);
-    chatArea.appendChild(row);
-    scrollToBottom();
-    return bubble;
-  }
+function addMsg(html, role){
+  const row=document.createElement('div');
+  row.className=`row ${role}`;
+  const av=document.createElement('div');
+  av.className=`av ${role}`;
+  av.textContent=role==='user'?'👤':'🤖';
+  const bub=document.createElement('div');
+  bub.className=`bub ${role}`;
+  if(role==='user') bub.textContent=html;
+  else bub.innerHTML=html;
+  row.appendChild(av);
+  row.appendChild(bub);
+  chatEl.appendChild(row);
+  chatEl.scrollTop=chatEl.scrollHeight;
+}
 
-  function showTyping() {
-    const row = document.createElement('div');
-    row.className = 'msg-row bot typing-row';
-    row.id = 'typing-indicator';
+function showTyping(){
+  const row=document.createElement('div');
+  row.className='row bot typing-row';
+  row.id='typing';
+  const av=document.createElement('div');
+  av.className='av bot';av.textContent='🤖';
+  const bub=document.createElement('div');
+  bub.className='typing-bub';
+  bub.innerHTML='<span></span><span></span><span></span>';
+  row.appendChild(av);row.appendChild(bub);
+  chatEl.appendChild(row);
+  chatEl.scrollTop=chatEl.scrollHeight;
+}
 
-    const avatar = document.createElement('div');
-    avatar.className = 'avatar bot';
-    avatar.textContent = '🤖';
+function hideTyping(){
+  const t=document.getElementById('typing');
+  if(t) t.remove();
+}
 
-    const bubble = document.createElement('div');
-    bubble.className = 'typing-bubble';
-    bubble.innerHTML = '<span></span><span></span><span></span>';
-
-    row.appendChild(avatar);
-    row.appendChild(bubble);
-    chatArea.appendChild(row);
-    scrollToBottom();
-  }
-
-  function hideTyping() {
-    const t = document.getElementById('typing-indicator');
-    if (t) t.remove();
-  }
-
-  function scrollToBottom() {
-    chatArea.scrollTop = chatArea.scrollHeight;
-  }
-
-  function formatText(text) {
-    // Convert markdown-like formatting to HTML
-    return text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/`(.*?)`/g, '<code>$1</code>')
-      .replace(/^### (.+)$/gm, '<strong style="font-size:15px;color:#a78bfa">$1</strong>')
-      .replace(/^## (.+)$/gm, '<strong style="font-size:15px;color:#a78bfa">$1</strong>')
-      .replace(/^# (.+)$/gm, '<strong style="font-size:16px;color:#a78bfa">$1</strong>')
-      .replace(/^\* (.+)$/gm, '• $1')
-      .replace(/^\d+\. (.+)$/gm, (m) => m)
-      .split('\n')
-      .map(line => line.trim() === '' ? '<br/>' : `<p>${line}</p>`)
-      .join('');
-  }
-
-  async function sendMessage() {
-    const text = userInput.value.trim();
-    if (!text || sendBtn.disabled) return;
-
-    // Hide welcome card after first message
-    const wc = document.getElementById('welcome-card');
-    if (wc) wc.style.display = 'none';
-
-    addMessage(text, 'user');
-    chatHistory.push({ role: 'user', parts: [{ text }] });
-    userInput.value = '';
-    userInput.style.height = 'auto';
-    sendBtn.disabled = true;
-    showTyping();
-
-    try {
-      const messages = [
-        { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
-        { role: 'model', parts: [{ text: "Understood! I'm your dedicated AAT 4 assistant. I'll only answer questions related to the AAT 4 assignment on AI-Assisted Workflow Design using Prompt Engineering. How can I help you?" }] },
-        ...chatHistory
-      ];
-
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: messages })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data?.error?.message || 'API error');
-
-      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't generate a response. Please try again.";
-      hideTyping();
-      addMessage(reply, 'bot');
-      chatHistory.push({ role: 'model', parts: [{ text: reply }] });
-
-    } catch (err) {
-      hideTyping();
-      addMessage(`⚠️ Error: ${err.message}. Please check your API key or try again.`, 'bot');
-    }
-
-    sendBtn.disabled = false;
-    userInput.focus();
-  }
+function send(){
+  const q=inpEl.value.trim();
+  if(!q||btnEl.disabled) return;
+  const wc=document.getElementById('wc');
+  if(wc) wc.style.display='none';
+  addMsg(q,'user');
+  inpEl.value='';
+  inpEl.style.height='auto';
+  btnEl.disabled=true;
+  showTyping();
+  setTimeout(()=>{
+    hideTyping();
+    addMsg(getBotReply(q),'bot');
+    btnEl.disabled=false;
+    inpEl.focus();
+  }, 900 + Math.random()*600);
+}
 </script>
 </body>
 </html>

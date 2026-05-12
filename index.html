@@ -337,6 +337,10 @@ function send(){
   if(!q||btnEl.disabled) return;
   const wc=document.getElementById('wc');
   if(wc) wc.style.display='none';
+  
+  const existingChips = document.querySelectorAll('.chat-chips');
+  existingChips.forEach(c => c.remove());
+
   addMsg(q,'user');
   inpEl.value='';
   inpEl.style.height='auto';
@@ -345,8 +349,27 @@ function send(){
   setTimeout(()=>{
     hideTyping();
     addMsg(getBotReply(q),'bot');
+    
+    const chipsDiv = document.createElement('div');
+    chipsDiv.className = 'chat-chips';
+    chipsDiv.style.animation = 'fadeUp 0.3s ease';
+    chipsDiv.style.paddingBottom = '10px';
+    chipsDiv.innerHTML = `
+      <p class="chips-label" style="text-align:center; margin:10px 0 8px;">Suggested questions</p>
+      <div class="chips">
+        <div class="chip" onclick="ask(this)">What is the problem statement?</div>
+        <div class="chip" onclick="ask(this)">Explain the workflow steps</div>
+        <div class="chip" onclick="ask(this)">Show me Prompt 1</div>
+        <div class="chip" onclick="ask(this)">What is prompt engineering?</div>
+        <div class="chip" onclick="ask(this)">How was the AI evaluated?</div>
+        <div class="chip" onclick="ask(this)">What are the key findings?</div>
+      </div>
+    `;
+    chatEl.appendChild(chipsDiv);
+    
     btnEl.disabled=false;
     inpEl.focus();
+    chatEl.scrollTop=chatEl.scrollHeight;
   }, 900 + Math.random()*600);
 }
 </script>
